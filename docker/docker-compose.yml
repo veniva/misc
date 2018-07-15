@@ -1,0 +1,55 @@
+version: '3'
+
+services:
+  php72:
+    image: <domain>/<subdomain>
+    container_name: php.v7.2
+    build:
+      context: .
+    ports:
+      - "80:80"
+
+    volumes:
+      - .:/var/www/site-name/
+      - ./.docker/etc/apache2/sites-available/:/etc/apache2/sites-available/
+    depends_on:
+          - mysqldb
+    networks:
+        - projects
+
+  mysqldb:
+    image: mysql:5.7.21
+    container_name: mysqlc
+    ports:
+      - "33061:3306"
+
+    volumes:
+      - ../../docker/mysqlc/:/var/lib/mysql/
+    environment:
+
+# Set root password if creating a service with a brand new empty database (no data in volume)
+#      - MYSQL_ROOT_PASSWORD=
+      - TZ=Europe/Sofia
+    networks:
+      - projects
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+
+#    PMA_ARBITRARY is for choosing a database on the login screen.
+    environment:
+      - PMA_ARBITRARY=1
+
+    ports:
+      - "7000:80"
+    volumes:
+      - /sessions
+    depends_on:
+      - mysqldb
+    networks:
+      - projects
+
+networks:
+  projects:
+    driver: bridge
